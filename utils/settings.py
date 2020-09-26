@@ -141,7 +141,7 @@ def get_args():
                         help="Curriculum features dim reduce by PCA")
     parser.add_argument("--mix-grad", dest="mix_grad", default=1, type=int,
                         help="mix gradient of two-stream arch, 1=True")
-    parser.add_argument("--discard", dest="discard", default=1, type=int,
+    parser.add_argument("--discard", dest="discard", default=0, type=int,
                         help="only update discard sample's label, 1=True")
     parser.add_argument("--gamma", dest="gamma", default=0.6, type=int,
                         help="forget rate schelduler param")
