@@ -63,7 +63,7 @@ def get_args():
                         help="Optimizer for PENCIL training")
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
-    # Co-teaching parameters 1
+    # Co-teaching parameters
     parser.add_argument('--forget-rate', '--fr', '--forget_rate', default=0.2, type=float,
                         metavar='H-P', help='Forget rate. Suggest same with noisy density.')
     parser.add_argument('--num-gradual', '--ng', '--num_gradual', default=10, type=int,
@@ -80,7 +80,7 @@ def get_args():
     parser.add_argument('--linear-num', '--linear_num', default=256, type=int,
                         metavar='H-P', help='how many epochs for linear drop rate, can be 5, 10, 15. '
                                             'This parameter is equal to Tk for R(T) in Co-teaching paper.')
-    # PENCIL parameters 1
+    # PENCIL parameters
     parser.add_argument('--alpha', default=0.4, type=float,
                         metavar='H-P', help='the coefficient of Compatibility Loss')
     parser.add_argument('--beta', default=0.1, type=float,
@@ -88,7 +88,6 @@ def get_args():
     parser.add_argument('--lambda1', default=200, type=int,
                         metavar='H-P', help='the value of lambda, ')
     parser.add_argument('--K', default=10.0, type=float, )
-    # PENCIL parameters 2
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='manual epoch number (useful on restarts)')
     parser.add_argument('--epochs', default=320, type=int, metavar='H-P',
@@ -102,7 +101,7 @@ def get_args():
                         help='noise density of data label')
     parser.add_argument('--noise_type', default=noise_type,  choices=['clean', 'sn', 'pairflip'],type=str,
                         help='noise tyoe of data label')
-    # Data settings 1
+    # Data settings
     parser.add_argument("--dataset", dest="dataset", default='mnist', type=str,
                         choices=['mnist', 'cifar10', 'cifar100', 'cifar2', 'isic', 'clothing1m', 'pcam'],
                         help="model input image size")
@@ -117,14 +116,13 @@ def get_args():
                              "Please ensure your computer have enough capacity!")
     parser.add_argument('--dataRoot',dest='root',default=isic_root,
                         type=str,metavar='PATH',help='where is the dataset')
-    # Data settings 2
     parser.add_argument('--datanum', default=15000, type=int,
                         metavar='H-P', help='number of train dataset samples')
-    parser.add_argument('--train-redux', dest="train_redux", default=5120, type=int,
+    parser.add_argument('--train-redux', dest="train_redux", default=None, type=int,
                         help='train data number, default None')
-    parser.add_argument('--test-redux', dest="test_redux", default=1280, type=int,
+    parser.add_argument('--test-redux', dest="test_redux", default=None, type=int,
                         help='test data number, default None')
-    parser.add_argument('--val-redux', dest="val_redux", default=1280, type=int,
+    parser.add_argument('--val-redux', dest="val_redux", default=None, type=int,
                         help='validate data number, default None')
     parser.add_argument('--full-test', dest="full_test", default=False, type=bool,
                         help='use full test set data, default False')
@@ -135,8 +133,6 @@ def get_args():
                         help="curriculum in label updating")
     parser.add_argument("--cluster-mode", dest="cluster_mode", default='dual', type=str, choices=['dual', 'single', 'dual_PCA'],
                         help="curriculum in label updating")
-    parser.add_argument("--shuffle-label", dest="shuffle_label", default=0, type=float,
-                        help="shuffle-label in label updating")
     parser.add_argument("--dim-reduce", dest="dim_reduce", default=256, type=int,
                         help="Curriculum features dim reduce by PCA")
     parser.add_argument("--mix-grad", dest="mix_grad", default=1, type=int,
@@ -152,10 +148,6 @@ def get_args():
                         metavar='PATH', help='save dir')
     parser.add_argument('--random-seed', dest='random_seed', default=None, type=int,
                         metavar='N', help='pytorch random seed, default None.')
-    # parser.add_argument('--tips', "--tip", dest="tip", default='', type=str,
-    #                     help="Training tips, just record in json file.")
-
-
     args = parser.parse_args()
 
     # Setting for different dataset
@@ -178,42 +170,6 @@ def get_args():
         args.datanum = 60000
         args.lr = 0.001
         args.lr2 = 0.0001
-    elif args.dataset == 'cifar10':
-        print("Training on cifar10")
-        # args.backbone = 'cnn'
-        if args.root == isic_root:
-            args.root = cifar10_root
-        args.warmup = 0
-        args.batch_size = 128
-        args.image_size = 32
-        args.classnum = 10
-        args.input_dim = 3
-        args.datanum = 50000
-    elif args.dataset == 'cifar100':
-        print("Training on cifar100")
-        args.backbone = 'cnn'
-        if args.root == isic_root:
-            args.root = cifar100_root
-        args.batch_size = 128
-        args.image_size = 32
-        args.classnum = 100
-        args.input_dim = 3
-        args.datanum = 50000
-    elif args.dataset == 'clothing1m':
-        if args.root == isic_root:
-            args.root = clothing1m_root
-        args.data_device = 0
-        args.backbone = 'resnet50'
-        args.image_size = 224
-        args.classnum = 14
-        args.input_dim = 3
-        args.datanum = 1000000
-        args.stage1 = 5
-        args.stage2 = 15
-        args.epochs = 25
-        args.batch_size = 32
-        args.dim_reduce = 256
-        args.noise_type = 'clean'
     elif args.dataset == 'pcam':
         if args.root == isic_root:
             args.root = pcam_root

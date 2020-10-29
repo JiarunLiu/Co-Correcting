@@ -3,24 +3,20 @@ import copy
 import json
 import time
 import shutil
-# import visdom
-import datetime
 import numpy as np
 from os.path import join
 
-# hul
 import torch
-import torchvision
 import torch.nn as nn
 from torch.nn import functional as F
 from sklearn.decomposition import PCA
 
 from utils.settings import get_args
 from utils.label_checker import check_label
+from utils.curriculum_clustering import CurriculumClustering
 
 from Loss import Loss
 from BasicTrainer import BasicTrainer
-from _curriculum_clustering import CurriculumClustering
 
 
 class CoCorrecting(BasicTrainer, Loss):
@@ -78,7 +74,7 @@ class CoCorrecting(BasicTrainer, Loss):
         os.makedirs(self.args.dir, exist_ok=True)
         os.makedirs(join(self.args.dir, 'record'), exist_ok=True)
 
-        keys = ['acc', 'acc5', 'label_accu', 'loss', "pure_ratio", "label_n2t", "label_t2n", "pure_ratio_discard", "margin_accu"]
+        keys = ['acc', 'acc5', 'label_accu', 'loss', "pure_ratio", "label_n2t", "label_t2n", "pure_ratio_discard"]
         record_infos = {}
         for k in keys:
             record_infos[k] = []
@@ -184,7 +180,7 @@ class CoCorrecting(BasicTrainer, Loss):
             if self.args.loss_type == 'coteaching':
                 lossA, lossB, ind_A_update, ind_B_update, ind_A_discard, ind_B_discard, \
                 pure_ratio_1, pure_ratio_2, pure_ratio_discard_1, pure_ratio_discard_2 = self.loss_coteaching(
-                    outputA, outputB, last_y_var_A, last_y_var_B, forget_rate, epoch * i, index, loss_type="PENCIL",
+                    outputA, outputB, last_y_var_A, last_y_var_B, forget_rate, ind=index, loss_type="PENCIL",
                     target_var=target_var, noise_or_not=self.noise_or_not, parallel=parallel, softmax=False)
             elif self.args.loss_type == 'coteaching_plus':
                 lossA, lossB, ind_A_update, ind_B_update, ind_A_discard, ind_B_discard, \
@@ -207,8 +203,8 @@ class CoCorrecting(BasicTrainer, Loss):
                 lossA, lossB, ind_A_update, ind_B_update, ind_A_discard, ind_B_discard, pure_ratio_1, pure_ratio_2, \
                 pure_ratio_discard_1, pure_ratio_discard_2 = self.loss_coteaching_plus(outputA, outputB,
                                                                                        last_y_var_A, last_y_var_B,
-                                                                                       forget_rate, epoch * i,
-                                                                                       index,
+                                                                                       forget_rate,
+                                                                                       ind=index,
                                                                                        loss_type="PENCIL_KL",
                                                                                        noise_or_not=self.noise_or_not,
                                                                                        softmax=False)
@@ -393,15 +389,6 @@ class CoCorrecting(BasicTrainer, Loss):
                 update_stage += 1
         return update_stage
 
-    def shuffle_label(self, shuffle_rate):
-        labels = np.argmax(self.yy, axis=1)
-        selected_ind = np.random.choice(np.arange(labels.shape[0]), int(labels.shape[0]*shuffle_rate))
-        classes = np.arange(0, self.args.classnum)
-        for ind in selected_ind:
-            new_label = np.random.choice(classes, 1, replace=False)
-            onehot = np.eye(self.args.classnum)[new_label.reshape(-1)] * self.args.K
-            self.yy[ind] = onehot
-
     def training(self):
         timer = AverageMeter()
         # train
@@ -411,7 +398,6 @@ class CoCorrecting(BasicTrainer, Loss):
 
             self._adjust_learning_rate(epoch)
 
-            # train for one epoch
             # load y_tilde
             if os.path.isfile(self.args.y_file):
                 self.yy = np.load(self.args.y_file)
@@ -420,9 +406,6 @@ class CoCorrecting(BasicTrainer, Loss):
 
             if epoch == self.args.stage1:
                 self._cluster_data_into_subsets()
-
-            if epoch >= self.args.stage1 and epoch < (self.args.stage1+self.args.stage2/2) and self.args.shuffle_label != 0:
-                self.shuffle_label(self.args.shuffle_label)
 
             if self.args.classnum > 5:
                 train_prec1_A, train_prec1_B, train_prec5_A, train_prec5_B = self.train(epoch)
@@ -542,10 +525,6 @@ class CoCorrecting(BasicTrainer, Loss):
             lossA.backward()
             self.optimizerA.step()
 
-            """
-            maybe remember yy_A.grad here?
-            """
-
             self.optimizerB.zero_grad()
             lossB.backward()
             self.optimizerB.step()
@@ -560,7 +539,6 @@ class CoCorrecting(BasicTrainer, Loss):
                 # obtain label distributions (y_hat)
                 last_y_var_A = self.softmax(yy_A)
                 last_y_var_B = self.softmax(yy_B)
-                # re-compute loss
                 lossA = self._get_loss(outputA_.detach(), last_y_var_A, loss_type="PENCIL", target_var=target_var)
                 lossB = self._get_loss(outputB_.detach(), last_y_var_B, loss_type="PENCIL", target_var=target_var)
 
@@ -842,6 +820,7 @@ class CoCorrecting(BasicTrainer, Loss):
             return top1_A.avg, top1_B.avg, top5_A.avg, top5_B.avg
         return top1_A.avg, top1_B.avg
 
+
 def save_checkpoint(state, is_best, filename='', modelbest=''):
     torch.save(state, filename)
     if is_best:
@@ -882,8 +861,6 @@ class AverageMeter(object):
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
-
-
 
 
 if __name__ == "__main__":

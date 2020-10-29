@@ -108,4 +108,3 @@ class NewsNet(nn.Module):
         out = self.ac(out)
         out = self.fc3(out)
         return out
-

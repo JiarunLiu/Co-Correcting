@@ -132,7 +132,7 @@ class Loss(object):
         _, pred1 = torch.max(y_1.data, 1)
         _, pred2 = torch.max(y_2.data, 1)
 
-        disagree_id = torch.where(pred1 != pred2)[0].cpu().numpy()
+        disagree_id = torch.where(pred1 == pred2)[0].cpu().numpy()
         ind_disagree = ind[disagree_id]
 
         if len(disagree_id)*(1-forget_rate) >= 1:

@@ -2,47 +2,6 @@ import json
 import numpy as np
 from os.path import join
 
-class Label_Checker(object):
-
-    def __init__(self, clean_dir, list):
-        self.clean_dir = clean_dir
-        self.data_list = list
-        self.load_gt()
-
-    def load_gt(self):
-        print("=> loading ground truth label from {}".format(self.clean_dir))
-
-        self.labelOrder = ['benign', 'malignant']
-        self.gt = []
-        for f in self.data_list:
-            file = join(self.clean_dir, f)
-            with open(file, 'r') as ff:
-                entry = json.load(ff)
-            try:
-                flabel = entry['meta']['clinical']['benign_malignant']
-                if not flabel in self.labelOrder:
-                    raise Exception
-                label_ = self.labelOrder.index(flabel)
-            except:
-                label_ = 0
-            self.gt.append(label_)
-        self.gt = np.array(self.gt)
-        print("=> ground truth label loaded")
-
-    def check(self, predict):
-        """
-        predict: numpy() format, shape: (data_num, class)
-        """
-        # get max prob index
-        predict = np.argmax(predict, axis=1)
-
-        if len(predict) != len(self.gt):
-            predict = predict[:len(self.gt)]
-
-        t = (self.gt == predict).sum()
-        accu = t / len(self.gt)
-        return accu
-
 
 def check_label_acc(A, B, onehotA=False, onehotB=False):
     """
@@ -111,26 +70,3 @@ def check_label(new_label, clean_label, noise_or_not, onehotA=False, onehotB=Fal
     n2t = check_label_noisy2true(new_label, clean_label, noise_or_not, onehotA, onehotB)
     t2n = check_label_true2noise(new_label, clean_label, noise_or_not, onehotA, onehotB)
     return acc, n2t, t2n
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
-    parser.add_argument('--data_list_f', type=str, metavar='N',
-                        default="/home/fgldlb/Documents/ISIC-Archive-Downloader/Data_balanced/Descriptions/data_list.json",
-                        help='number of data loading workers (default: 4)')
-    parser.add_argument('--clean_dir', type=str, metavar='N',
-                        default="/home/fgldlb/Documents/ISIC-Archive-Downloader/Data_balanced/Descriptions/clean",
-                        help='number of data loading workers (default: 4)')
-    parser.add_argument('--npy', type=str, metavar='N',
-                        default="./../experiment/balance_resnet_PENCIL_sn_010/y.npy",
-                        help='number of data loading workers (default: 4)')
-    args = parser.parse_args()
-
-    with open(args.data_list_f, 'r') as data_f:
-        data_dict = json.load(data_f)
-    train_list = data_dict['train']
-    soft_label = np.load(args.npy)
-
-    label_checker = Label_Checker(args.clean_dir, train_list)
-    accu = label_checker.check(soft_label)
-    print(accu)

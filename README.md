@@ -1,6 +1,6 @@
 # Co-Correcting
 
-PyTorch implementation of *Co-Correcting:Noise-tolerant Medical Image Classification via collaborative Label Probability Estimation and Annotation Correction Curriculum*
+Official implementation of *Co-Correcting:Noise-tolerant Medical Image Classification via collaborative Label Probability Estimation*
 
 ## Requirements:
 
@@ -19,7 +19,7 @@ Here is an example:
 python python Co-Correcting.py --dir experiment/ --dataset 'mnist' --noise_type sn --noise 0.2 --forget-rate 0.2
 ```
 
-or you can train Co-Correcting with shel script:
+or you can train Co-Correcting with `.sh`:
 
 ```shell
 sh script/mnist.sh

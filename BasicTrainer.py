@@ -189,43 +189,6 @@ class BasicTrainer(object):
 
         return trainset, testset, valset
 
-    def _get_dataset_clothing1m(self):
-        transform = torchvision.transforms.Compose([
-            torchvision.transforms.RandomHorizontalFlip(),
-            torchvision.transforms.ToTensor(),
-            torchvision.transforms.Normalize(mean=(0.492, 0.482, 0.446), std=(0.247, 0.244, 0.262)),
-        ])
-
-        transform2 = torchvision.transforms.Compose([
-            torchvision.transforms.ToTensor(),
-            torchvision.transforms.Normalize(mean=(0.492, 0.482, 0.446), std=(0.247, 0.244, 0.262)),
-        ])
-
-        trainset = Clothing1M(root=join(self.args.root, 'noisy_train'),
-                              transform=transform,
-                              noise_type=self.args.noise_type,
-                              noise_rate=self.args.noise,
-                              device=self.args.device,
-                              image_size=None,
-                              balance=True
-                              )
-        testset = Clothing1M(root=join(self.args.root, 'clean_test'),
-                             transform=transform2,
-                             noise_type='clean',
-                             noise_rate=self.args.noise,
-                             device=self.args.device,
-                             image_size=None
-                             )
-        valset = Clothing1M(root=join(self.args.root, 'clean_val'),
-                            transform=transform2,
-                            noise_type='clean',
-                            noise_rate=self.args.noise,
-                            device=self.args.device,
-                            image_size=None
-                            )
-
-        return trainset, testset, valset
-
     def _get_dataset_mnist(self):
         transform1 = torchvision.transforms.Compose([
             torchvision.transforms.RandomPerspective(),
@@ -261,75 +224,11 @@ class BasicTrainer(object):
 
         return trainset, testset, valset
 
-    def _get_dataset_cifar10(self):
-        # transform = torchvision.transforms.ToTensor()
-        transform1 = torchvision.transforms.Compose([
-            torchvision.transforms.RandomHorizontalFlip(),
-            torchvision.transforms.RandomCrop(32, 4),
-            torchvision.transforms.ToTensor(),
-        ])
-        transform2 = torchvision.transforms.Compose([
-            torchvision.transforms.ToTensor(),
-        ])
-        trainset = CIFAR10(root=self.args.root,
-                           download=True,
-                           train=True,
-                           transform=transform1,
-                           noise_type=self.args.noise_type,
-                           noise_rate=self.args.noise
-                           )
-        testset = CIFAR10(root=self.args.root,
-                          download=True,
-                          train=True,
-                          transform=transform2,
-                          noise_type='clean',
-                          noise_rate=self.args.noise
-                          )
-        valset = CIFAR10(root=self.args.root,
-                         download=True,
-                         train=True,
-                         transform=transform2,
-                         noise_type='clean',
-                         noise_rate=self.args.noise
-                         )
-        return trainset, testset, valset
-
-    def _get_dataset_cifar100(self):
-        transform = torchvision.transforms.ToTensor()
-        trainset = CIFAR100(root=self.args.root,
-                            download=True,
-                            train=True,
-                            transform=transform,
-                            noise_type=self.args.noise_type,
-                            noise_rate=self.args.noise
-                            )
-        testset = CIFAR100(root=self.args.root,
-                           download=True,
-                           train=True,
-                           transform=transform,
-                           noise_type=None,
-                           noise_rate=self.args.noise
-                           )
-        valset = CIFAR100(root=self.args.root,
-                          download=True,
-                          train=True,
-                          transform=transform,
-                          noise_type=None,
-                          noise_rate=self.args.noise
-                          )
-        return trainset, testset, valset
-
     def _load_data(self):
         if self.args.dataset == 'isic':
             trainset, testset, valset = self._get_dataset_isic()
         elif self.args.dataset == 'mnist':
             trainset, testset, valset = self._get_dataset_mnist()
-        elif self.args.dataset == 'cifar10':
-            trainset, testset, valset = self._get_dataset_cifar10()
-        elif self.args.dataset == 'cifar100':
-            trainset, testset, valset = self._get_dataset_cifar100()
-        elif self.args.dataset == 'clothing1m':
-            trainset, testset, valset = self._get_dataset_clothing1m()
         elif self.args.dataset == 'pcam':
             trainset, testset, valset = self._get_dataset_pcam()
         else:

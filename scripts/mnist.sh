@@ -1,5 +1,5 @@
 echo `date`
-echo -e "\e[1;46mTraining co-pencil new network\e[0m"
+echo -e "\e[1;46mTraining Co-Correcting on MNIST...\e[0m"
 python Co-Correcting.py --dir experiment/paper/mnist/CoCor/clean --dataset 'mnist' --noise_type clean --noise 0.0 --optim "SGD"\
  --mix-grad 1 --discard 0  --forget-rate 0.01 --lambda1 500 --weight-decay 5e-4 --stage1 30 --stage2 140 --epochs 320
 echo `date`
