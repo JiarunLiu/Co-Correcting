@@ -1,6 +1,6 @@
 # Co-Correcting
 
-Official implementation of *Co-Correcting:Noise-tolerant Medical Image Classification via collaborative Label Probability Estimation*
+Official implementation of *Co-Correcting: Noise-tolerant Medical Image Classification via collaborative Label Probability Estimation*
 
 ## Requirements:
 
@@ -16,7 +16,7 @@ Official implementation of *Co-Correcting:Noise-tolerant Medical Image Classific
 Here is an example:
 
 ```shell
-python python Co-Correcting.py --dir experiment/ --dataset 'mnist' --noise_type sn --noise 0.2 --forget-rate 0.2
+python Co-Correcting.py --dir ./experiment/ --dataset 'mnist' --noise_type sn --noise 0.2 --forget-rate 0.2
 ```
 
 or you can train Co-Correcting with `.sh`:
